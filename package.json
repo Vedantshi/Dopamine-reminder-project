@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:css": "npx tailwindcss -i ./src/index.css -o ./dist/tw.css --minify",
+    "build": "npm run build:css && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
