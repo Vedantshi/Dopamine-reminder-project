@@ -12,7 +12,7 @@ export default function App() {
       <nav className="w-full border-b border-white/10 backdrop-blur-sm bg-black/20 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Dopamine Project</h1>
+            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">FocusFlow</h1>
             <p className="text-sm text-gray-400">Discipline is choosing what you want most over what you want now.</p>
           </div>
           <div className="flex gap-2 items-center">

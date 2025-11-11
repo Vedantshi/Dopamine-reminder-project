@@ -170,6 +170,79 @@ export default function DailyGuidelines() {
 
   const [draft, setDraft] = useState('')
 
+  // Export notes and related data as a JSON backup
+  function exportData() {
+    try {
+      const keys = ['dg_notes', 'dayData', 'guidelineProgressHistory', 'guidelineCompleted', 'guidelineCompletedDate']
+      const out: Record<string, any> = { exportedAt: new Date().toISOString(), data: {} }
+      keys.forEach(k => {
+        try {
+          const raw = localStorage.getItem(k)
+          out.data[k] = raw ? JSON.parse(raw) : raw
+        } catch {
+          // If parsing fails, store raw string value
+          out.data[k] = localStorage.getItem(k)
+        }
+      })
+
+      const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' })
+  const filename = `focusflow-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+
+      // cross-browser download
+      const nav = window.navigator as any
+      if (nav && nav.msSaveOrOpenBlob) {
+        nav.msSaveOrOpenBlob(blob, filename)
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+      }
+    } catch (e) {
+      console.error('Export failed', e)
+      try { alert('Export failed — see console for details.') } catch {}
+    }
+  }
+
+  // Import backup JSON and restore localStorage keys
+  function importData(file: File | null) {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const text = reader.result as string
+        const parsed = JSON.parse(text)
+        if (!parsed || typeof parsed !== 'object' || !parsed.data) {
+          try { alert('Invalid backup file (missing data field).') } catch {}
+          return
+        }
+        const entries = parsed.data as Record<string, any>
+        Object.keys(entries).forEach(k => {
+          try {
+            localStorage.setItem(k, JSON.stringify(entries[k]))
+          } catch {
+            // if setting fails, skip
+          }
+        })
+        // If dg_notes present, update component state so notes panel updates immediately
+        if (entries.dg_notes) {
+          try { setNotes(entries.dg_notes) } catch {}
+        }
+        try { alert('Import complete. The page will reload so calendar and other components pick up restored data.') } catch {}
+        // reload so CalendarView re-reads dayData from localStorage
+        window.location.reload()
+      } catch (e) {
+        console.error('Import failed', e)
+        try { alert('Import failed — see console for details.') } catch {}
+      }
+    }
+    reader.readAsText(file)
+  }
+
   function toggle(i: number) {
     setCompleted(prev => {
       const copy = [...prev]
@@ -189,6 +262,23 @@ export default function DailyGuidelines() {
     setNotes(prev => prev.filter(n => n.id !== id))
   }
 
+  // Reset all guideline checkboxes for today
+  function resetGuidelines() {
+    try {
+      setCompleted(Array(defaultGuidelines.length).fill(false))
+      const todayKey = formatISO(new Date())
+      try { localStorage.setItem('guidelineCompletedDate', todayKey) } catch {}
+      // update history for today to 0%
+      setHistory(prev => {
+        const copy = { ...prev, [todayKey]: 0 }
+        try { localStorage.setItem('guidelineProgressHistory', JSON.stringify(copy)) } catch {}
+        return copy
+      })
+    } catch (e) {
+      console.error('Failed to reset guidelines', e)
+    }
+  }
+
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       {showConfetti ? <Confetti burst={true} /> : null}
@@ -199,6 +289,7 @@ export default function DailyGuidelines() {
               <div className="text-sm text-gray-300 flex items-center gap-3">
                 <div className="font-medium">{completedCount}/8</div>
                 <div className="text-sm">{percent}%</div>
+                <button onClick={resetGuidelines} title="Reset guidelines" className="text-xs px-2 py-1 rounded-md bg-red-600/20 text-red-300 hover:bg-red-600/30">Reset</button>
                 {/* Percent change badge */}
                 {delta === null ? (
                   <div className="text-xs text-gray-400">—</div>
@@ -250,7 +341,7 @@ export default function DailyGuidelines() {
         </div>
       </div>
 
-      <aside className="rounded-2xl p-4 bg-gradient-to-b from-slate-900/80 to-indigo-950/60 border border-white/10 backdrop-blur-sm">
+  <aside className="rounded-2xl p-4 bg-gradient-to-b from-slate-900/80 to-indigo-950/60 border border-white/10 backdrop-blur-sm">
         <h3 className="text-lg font-semibold">Notes</h3>
         <p className="text-sm text-gray-400 mb-3">Space for daily thoughts or adjustments. Your notes are saved locally in this browser.</p>
         <textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-md p-2 h-24 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Write your thoughts..."></textarea>
@@ -258,12 +349,22 @@ export default function DailyGuidelines() {
           <Save className="w-4 h-4" /> Save
         </button>
 
-        <h4 className="mt-4 text-sm text-gray-300">Saved notes</h4>
         <div className="mt-2 space-y-2">
+          <button onClick={exportData} type="button" className="w-full px-3 py-2 rounded-md border border-white/10 text-sm bg-white/5 hover:bg-white/10">Export notes</button>
+          <div>
+            <label htmlFor="import-backup" className="w-full block">
+              <input id="import-backup" type="file" accept="application/json" onChange={(e) => importData(e.target.files?.[0] ?? null)} className="hidden" />
+              <button type="button" onClick={() => document.getElementById('import-backup')?.click()} className="w-full mt-1 px-3 py-2 rounded-md border border-white/10 text-sm bg-white/5 hover:bg-white/10">Import backup</button>
+            </label>
+          </div>
+        </div>
+
+        <h4 className="mt-4 text-sm text-gray-300">Saved notes</h4>
+  <div className="mt-2 max-h-64 overflow-auto pr-2 space-y-2">
           {notes.map(n => (
             <div key={n.id} className="p-3 bg-black/30 border border-white/10 rounded-lg">
               <div className="flex justify-between items-start">
-                <div className="text-gray-300 text-sm">{n.text}</div>
+                <div className="text-gray-300 text-sm" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{n.text}</div>
                 <button onClick={() => delNote(n.id)} className="text-red-400"><Trash2 className="w-4 h-4" /></button>
               </div>
               <div className="text-xs text-gray-500 mt-2">{new Date(n.timestamp).toLocaleString()}</div>

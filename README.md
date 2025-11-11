@@ -1,6 +1,6 @@
-# Dopamine Detox Tracking (Local React + Tailwind App)
+# FocusFlow — Daily focus & habit tracker
 
-This workspace contains a Vite + React + TypeScript scaffold and core components for the Dopamine Detox Tracking Application described in the spec.
+This workspace contains a Vite + React + TypeScript scaffold and core components for FocusFlow, a lightweight daily focus and habit tracker.
 
 Quick start (Windows PowerShell):
 
