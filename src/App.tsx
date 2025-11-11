@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import DailyGuidelines from './components/DailyGuidelines'
 import CalendarView from './components/CalendarView'
-import { ListChecks, Calendar } from 'lucide-react'
+import { ListChecks, Calendar, Zap } from 'lucide-react'
 
 export default function App() {
   const [page, setPage] = useState<'guidelines' | 'calendar'>('guidelines')
@@ -11,9 +11,12 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-900 text-white">
       <nav className="w-full border-b border-white/10 backdrop-blur-sm bg-black/20 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">FocusFlow</h1>
-            <p className="text-sm text-gray-400">Discipline is choosing what you want most over what you want now.</p>
+          <div className="flex items-center gap-3">
+            <Zap className="w-7 h-7 text-blue-400/90" />
+            <div>
+              <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">FocusFlow</h1>
+              <p className="text-sm text-gray-400">Discipline is choosing what you want most over what you want now.</p>
+            </div>
           </div>
           <div className="flex gap-2 items-center">
             <button onClick={() => setPage('guidelines')} className={`px-3 py-2 rounded-lg flex items-center gap-2 ${page==='guidelines' ? 'bg-blue-600 shadow-glow-blue' : 'bg-white/5 hover:bg-white/10'}`}>

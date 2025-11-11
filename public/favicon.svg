@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" role="img" aria-label="FocusFlow">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#C084FC"/>
+    </linearGradient>
+  </defs>
+  <rect width="24" height="24" rx="5" fill="#0f172a" />
+  <!-- Simple lightning bolt icon -->
+  <path fill="url(#g)" d="M13 2 L3 14 H10 L9 22 L19 10 H12 L13 2 Z" />
+</svg>
